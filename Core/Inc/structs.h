@@ -58,9 +58,7 @@ typedef struct {
 typedef struct {
     // Number of cells and thermistors
     uint8_t numberOfCells;           /** Number of cells the BMS will report. */
-    uint8_t numberOfPopulatedCells;  /** Number of cells actually in the BMS. */
     uint8_t numberOfThermistors;     /** Number of thermistors in the BMS. */
-    uint8_t populatedCells[7];       /** Array indicating which cells are populated. */
 
     // Shutdown and warning thresholds
     uint16_t overVoltageMV;          /** Over voltage threshold in millivolts. */

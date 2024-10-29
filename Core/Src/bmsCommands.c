@@ -235,8 +235,7 @@ void BMS_GetVoltagesAll(uint16_t *voltages) {
 	// Find the minimum and maximum cell voltages
 	status.minVoltage = 0xFFFF;
 	status.maxVoltage = 0;
-	for (int i = 0; i < config.numberOfPopulatedCells; i++) {
-		uint8_t cell = config.populatedCells[i]; // TODO: Remove populated cells
+	for (int cell = 0; cell < config.numberOfCells; cell++) {
 		uint16_t voltage = status.cellVoltages[cell];
 		if (voltage < status.minVoltage) {
 			status.minVoltage = voltage;
@@ -255,8 +254,7 @@ void BMS_GetVoltagesAll(uint16_t *voltages) {
 /* Passive  Balancing */
 void BMS_PassiveBalanceCells() {
 
-    for (int i = 0; i < config.numberOfPopulatedCells; i++) {
-        uint8_t cell = config.populatedCells[i];
+    for (int cell = 0; cell < config.numberOfCells; cell++) {
         uint16_t voltage = status.cellVoltages[cell];  // in mV
 
         // If Voltage is below the minimum balancing voltage then don't balance

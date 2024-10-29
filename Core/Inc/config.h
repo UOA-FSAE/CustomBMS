@@ -15,11 +15,11 @@
 #define DISCHARGE_RESISTANCE 					23.5
 
 /* Absolute Maximum configurations */
-#define ABSMAX_POPULATED_CELLS					18
-#define ABSMAX_THERMISTOR_COUNT					8
+#define THERMISTOR_COUNT				    	8
 #define ABSMAX_CELL_VOLTAGE						43500
 #define ABSMIN_CELL_VOLTAGE						30000
-#define ABSMAX_TEMPERATURE						70
+#define WARN_TEMPERATURE						50
+#define MAX_TEMPERATURE			    			60
 #define MIN_BALANCING_CELL_VOLTAGE				32000
 #define MAX_BALANCING_CELL_VOLTAGE				42000
 

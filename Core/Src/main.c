@@ -61,9 +61,7 @@ BmsStatus status = { .cellVoltages = { 0 }, 		// Stores all cell voltages
 
 // Initialize an instance of BmsConfig
 BmsConfig config = { .numberOfCells = 18,// BMS is designed to have 18 cells on it
-		.numberOfPopulatedCells = 7,// Set to 7 for P4P, would be 18 normally
 		.numberOfThermistors = 8,// There are 8 thermistors wired to the STM ADCs
-		.populatedCells = { 2, 4, 6, 8, 10, 12, 14 },
 		.overVoltageMV = 42000,// HV-LiPo (M025) are 4.35V, LiCoO2 (<2024) are 4.2V
 		.underVoltageMV = 32000,			// All LiPo are 3.2V
 		.overVoltageMV = 42000,			// All LiPo are 4.2V
