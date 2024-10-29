@@ -83,7 +83,7 @@ void CAN_SendCellVoltages() {
 void CAN_SendBmsConfiguration() {
 	uint8_t data[8] = { 0 };
 
-	data[0] = config.numberOfPopulatedCells;
+	data[0] = config.numberOfCells;
 	data[1] = config.numberOfThermistors;
 	data[2] = (config.overVoltageMV >> 8) & 0xFF;
 	data[3] = config.overVoltageMV & 0xFF;
@@ -106,10 +106,10 @@ void CAN_SendBalanceConfiguration() {
 }
 
 void CAN_ReceiveBmsConfiguration(uint8_t *data) {
-	if (data[0] >= 0 && data[0] < ABSMAX_POPULATED_CELLS) {
-		config.numberOfPopulatedCells = data[0];
+	if (data[0] >= 0 && data[0] <= 18) { // 0 to 18 cells
+		config.numberOfCells = data[0];
 	}
-	if (data[1] >= 0 && data[1] < ABSMAX_THERMISTOR_COUNT) {
+	if (data[1] >= 0 && data[1] < THERMISTOR_COUNT) {
 		config.numberOfThermistors = data[1];
 	}
 	uint16_t newOverVoltage = data[3] | (data[2] << 8);
@@ -122,10 +122,10 @@ void CAN_ReceiveBmsConfiguration(uint8_t *data) {
 			&& newUnderVoltage < config.overVoltageMV) {
 		config.underVoltageMV = newUnderVoltage;
 	}
-	if (data[6] >= 0 && data[6] < ABSMAX_TEMPERATURE) {
+	if (data[6] >= 0 && data[6] < MAX_TEMPERATURE) {
 		config.shutdownTemperature = data[6];
 	}
-	if (data[7] >= 0 && data[7] < ABSMAX_TEMPERATURE) {
+	if (data[7] >= 0 && data[7] < WARN_TEMPERATURE) {
 		config.warningTemperature = data[7];
 	}
 }
