@@ -23,10 +23,12 @@
 /* USER CODE BEGIN 0 */
 #include "config.h"
 #include "canCommunication.h"
+#include "structs.h"
 
 CAN_FilterTypeDef sFilterConfig;
 uint32_t Tx_mailbox;
 
+extern BmsStatus status;
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan;
@@ -165,10 +167,9 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 		CAN_SendBalanceConfiguration();
 		break;
 	case CAN_ID_ISA_CURRENT:
-		CAN_ReceiveISACurrent(0, Rx_data);
-		break;
-	case CAN_ID_ISA_CURRENT_COUNTER:
-		CAN_ReceiveISACurrent(1, Rx_data);
+    status.packCurrent = Rx_data[5] | (Rx_data[4] << 8) | (Rx_data[3] << 16) | (Rx_data[2] << 24);
+    // Update segment coulomb count (in As)
+    status.segmentCoulombCount += (float)status.packCurrent / 200000.0f;
 		break;
 	case CAN_ID_PING_DATA:
 		CAN_SendBalanceConfiguration();

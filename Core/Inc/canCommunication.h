@@ -126,7 +126,7 @@ void CAN_SetAllRemainingEnergies();
  * @param cellNum The cell number (1-18).
  * @param remainingEnergy The remaining energy value for the cell.
  */
-void CAN_SetRemainingEnergy(uint8_t cellNum, uint16_t remainingEnergy);
+void CAN_SetRemainingEnergy(uint32_t remainingEnergyMah);
 
 // TODO: The following functions are declared in the original header but not implemented in the C file
 /**

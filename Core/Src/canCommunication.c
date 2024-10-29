@@ -41,8 +41,8 @@ void CAN_SendStatus() {
 	dataA[3] = status.maxVoltage & 0xFF;
 	dataA[4] = (status.minTemp >> 8) & 0xFF;
 	dataA[5] = status.minTemp & 0xFF;
-	dataA[4] = (status.maxTemp >> 8) & 0xFF;
-	dataA[5] = status.maxTemp & 0xFF;
+	dataA[6] = (status.maxTemp >> 8) & 0xFF;
+	dataA[7] = status.maxTemp & 0xFF;
 
 	CAN_SendFrame(CAN_ID_STATUS_UPDATE_A, dataA, 8);
 
@@ -54,17 +54,12 @@ void CAN_SendStatus() {
 	dataB[0] |= (status.cellShutdownTemperature << 3); // Cell Shutdown Temperature
 	dataB[0] |= (status.cellWarningTemperature << 4); // Cell Warning Temperature
 	dataB[0] |= (status.pbIcWatchdogTimeout << 5); // PB IC Watchdog Timeout
-	dataB[0] |= (status.abIcWatchdogTimeout << 6); // AB IC Watchdog Timeout
 
 	dataB[1] = (status.cellPassiveBalancingFlags >> 1) & 0xFF; 	// Cells 1 to 8
 	dataB[2] = ((status.cellPassiveBalancingFlags >> 1) >> 8) & 0xFF;// Cells 9 to 16
 	dataB[3] = ((status.cellPassiveBalancingFlags >> 1) >> 16) & 0x03; // Cells 17 and 18
 
-	dataB[4] = (status.cellActiveBalancingFlags >> 1) & 0xFF; 	// Cells 1 to 8
-	dataB[5] = ((status.cellActiveBalancingFlags >> 1) >> 8) & 0xFF;// Cells 9 to 16
-	dataB[6] = ((status.cellActiveBalancingFlags >> 1) >> 16) & 0x03; // Cells 17 and 18
-
-	CAN_SendFrame(CAN_ID_STATUS_UPDATE_B, dataB, 7);
+	CAN_SendFrame(CAN_ID_STATUS_UPDATE_B, dataB, 4);
 }
 
 void CAN_SendCellVoltages() {
@@ -103,12 +98,9 @@ void CAN_SendBmsConfiguration() {
 void CAN_SendBalanceConfiguration() {
 	uint8_t data[8] = { 0 };
 
-	data[0] = (config.passiveBalanceEnabled << 0)
-			| (config.activeBalanceEnabled << 1);
+	data[0] = (config.passiveBalanceEnabled << 0);
 	data[1] = config.passiveBalanceThreshold;
-	data[2] = config.activeBalanceThreshold;
-	data[3] = config.passiveBalanceDutyCycle;
-	data[4] = config.activeBalanceCurrent;
+	data[2] = config.passiveBalanceDutyCycle;
 
 	CAN_SendFrame(CAN_ID_SEND_BALANCE_CONFIGURATION, data, 8);
 }
@@ -140,72 +132,28 @@ void CAN_ReceiveBmsConfiguration(uint8_t *data) {
 
 void CAN_ReceiveBalanceConfiguration(uint8_t *data) {
 	config.passiveBalanceEnabled = (data[0] & 0b01);
-	config.activeBalanceEnabled = (data[0] & 0x02) >>1;
 	config.passiveBalanceThreshold = data[1];
-	config.activeBalanceThreshold = data[2];
 	config.passiveBalanceDutyCycle = data[3];
-	config.activeBalanceCurrent = data[4];
-}
-
-void CAN_ReceiveISACurrent(uint8_t type, uint8_t *data) {
-    if (type == 0) {
-        // ISA Current
-    	status.packCurrent = data[5] | (data[4] << 8) | (data[3] << 16) | (data[2] << 24);
-    	if (status.cellActiveBalancingFlags) {
-    		status.packCurrent += 257;
-    	} else if (HAL_GPIO_ReadPin(AB_DRIVE_EN_GPIO_Port, AB_DRIVE_EN_Pin)) {
-    		status.packCurrent += 57;
-    	}
-
-        float energyChangeMah = (float)status.packCurrent * (5.0f / 3600000.0f) * 1.054f;  // mAh change in 5ms
-        totalEnergyChangeMah += energyChangeMah;
-
-        int intEnergyChange = (int)totalEnergyChangeMah;
-        if (intEnergyChange != 0) {
-            // Update each cell's remaining energy
-            for (int i = 1; i <= 18; i++) {
-                status.cellRemainingEnergy[i] -= intEnergyChange;
-            }
-            totalEnergyChangeMah -= intEnergyChange;  // Keep the fractional part
-        }
-
-        // Update pack coulomb count (in As)
-        status.packCoulombCount += (float)status.packCurrent / 200000.0f;
-    } else if (type == 1) {
-        // ISA Current Counter
-    	status.packCurrentCounter = data[5] | (data[4] << 8) | (data[3] << 16) | (data[2] << 24);
-    }
 }
 
 void CAN_RequestRemainingEnergies() {
-	uint8_t data[3] = { 0 };
+	uint8_t data[1] = { 0 };
 
-	CAN_SendFrame(CAN_ID_REMAINING_ENERGIES, data, 3);
-	// Sends a blank 0,0,0 t request the motec update the remaining energies
+	CAN_SendFrame(CAN_ID_REMAINING_ENERGIES, data, 1);
 }
 
 void CAN_GetRemainingEnergy(uint8_t* data) {
-	if (status.remainingEnergiesRequested == 0) {
-		if (data[0] == 0 && data[1] == 0 && data[2] == 0)
-			status.remainingEnergiesRequested = 18;
-		// We're not expecting an updated energy so return
-		return;
-	}
-	status.remainingEnergiesRequested--;
-	status.cellRemainingEnergy[data[0]] = ((uint16_t)data[2] | (uint16_t)data[1] << 8);
+	// data sent in mAh
+	status.segmentCoulombCount = (float) (data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24)) / 1000.0f;
 }
 
-void CAN_SetAllRemainingEnergies() {
-	// 18 Cells
-	for (uint8_t cell = 1; cell < 19; cell++) {
-		CAN_SetRemainingEnergy(cell, status.cellRemainingEnergy[cell]);
-	}
-}
-void CAN_SetRemainingEnergy(uint8_t cellNum, uint16_t remainingEnergy) {
-	uint8_t data[3] = { 0 };
-	data[0] = cellNum;
-	data[1] = (remainingEnergy >> 8) & 0xFF;
-	data[2] = (remainingEnergy & 0xFF);
-	CAN_SendFrame(CAN_ID_REMAINING_ENERGIES, data, 3);
-	// Updates the Energ
+void CAN_SetRemainingEnergy(uint32_t remainingEnergyMah) {
+	uint8_t data[4] = { 0 };
+
+	data[0] = remainingEnergyMah & 0xFF;
+	data[1] = (remainingEnergyMah >> 8) & 0xFF;
+	data[2] = (remainingEnergyMah >> 16) & 0xFF;
+	data[3] = (remainingEnergyMah >> 24) & 0xFF;
+
+	CAN_SendFrame(CAN_ID_REMAINING_ENERGIES, data, 4);
 }

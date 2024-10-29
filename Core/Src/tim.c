@@ -298,93 +298,32 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
 /* USER CODE BEGIN 1 */
 
-uint8_t activeCell = 2;
-uint8_t activeCycleCount = 0;
-uint8_t VSETcount = 0;
 uint8_t flashCount = 0;
-uint8_t cellCurrent = 0;
+uint8_t currentCell = 0; // used for cycling through cells for discharge when CYCLE_CELL_DISCHARGE is defined
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM1)  // TIM 1 = 10ms intervals
 	{
-//		if (!config.activeBalanceEnabled)
-			BMS_GetVoltagesAll(status.cellVoltages);
+    BMS_GetVoltagesAll(status.cellVoltages);
 		CAN_SendStatus();
 		CAN_SendCellVoltages();
 	}
 	if (htim->Instance == TIM3) // TIM3 = 250ms intervals
 	{
 		CAN_SendCellVoltages();
-		CAN_SetAllRemainingEnergies();
-
-
-		if (config.activeBalanceEnabled) {
-#ifndef CYCLE_CELL_CHARGE
-			activeCycleCount++;
-			if (activeCycleCount > 10) {
-				BMS_ActiveBalanceCells();
-				activeCycleCount = 0;
-				if (config.passiveBalanceEnabled) {
-					BMS_PassiveBalanceCells(2000.0f);
-				} else {
-				#ifndef CYCLE_CELL_DISCHARGE
-					status.cellPassiveBalancingFlags = 0; // Disable all passive balancing
-					BMS_SetCellDischargeAll();
-				#else
-					BMS_SetCellDischarge(cellCurrent, 0);
-					cellCurrent+=1;
-					if (cellCurrent > 18) {
-						cellCurrent = 1;
-					}
-					BMS_SetCellDischarge(cellCurrent, 1);
-				#endif
-				}
-			} else if (activeCycleCount == 8) {
-				BMS_SetCellCharge(0, false); // Disable All Active Cells
-
-				status.cellPassiveBalancingFlags = 0; // Disable all passive balancing
-				BMS_SetCellDischargeAll();
-			}
-#else
-			activeCell+=2;
-			if (activeCell > 14) {
-			  activeCell = 2;
-			}
-			BMS_SetCellCharge(activeCell, true);
-			if (config.passiveBalanceEnabled) {
-				BMS_PassiveBalanceCells(2000.0f);
-			} else {
-			#ifndef CYCLE_CELL_DISCHARGE
-				status.cellPassiveBalancingFlags = 0; // Disable all passive balancing
-				BMS_SetCellDischargeAll();
-			#else
-				BMS_SetCellDischarge(cellCurrent, 0);
-				cellCurrent+=1;
-				if (cellCurrent > 18) {
-					cellCurrent = 1;
-				}
-				BMS_SetCellDischarge(cellCurrent, 1);
-			#endif
-			}
-#endif
-
+		if (config.passiveBalanceEnabled) {
+		  BMS_PassiveBalanceCells(245.0f);
 		} else {
-			HAL_GPIO_WritePin(AB_DRIVE_EN_GPIO_Port, AB_DRIVE_EN_Pin, GPIO_PIN_RESET);
-			BMS_SetCellCharge(0, false); // Disable All Cells
-			if (config.passiveBalanceEnabled) {
-				BMS_PassiveBalanceCells(245.0f);
-			} else {
-		#ifndef CYCLE_CELL_DISCHARGE
-				status.cellPassiveBalancingFlags = 0; // Disable all passive balancing
-				BMS_SetCellDischargeAll();
-		#else
-				BMS_SetCellDischarge(cellCurrent, 0);
-				cellCurrent+=1;
-				if (cellCurrent > 18) {
-					cellCurrent = 1;
-				}
-				BMS_SetCellDischarge(cellCurrent, 1);
-	#endif
+		  #ifndef CYCLE_CELL_DISCHARGE
+			status.cellPassiveBalancingFlags = 0; // Disable all passive balancing
+			BMS_SetCellDischargeAll();
+		  #else
+			BMS_SetCellDischarge(currentCell, 0);
+			currentCell+=1;
+			if (currentCell > 18) {
+			  currentCell = 1;
 			}
+			BMS_SetCellDischarge(currentCell, 1);
+		  #endif
 		}
 	}
 	if (htim->Instance == TIM14) // TIM14 = 1s intervals
@@ -392,7 +331,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 		//Update flash every minute;
 		if (flashCount >= 60) {
-			FLASH_SaveRemainingEnergies();
+			FLASH_SaveSegmentCapacity();
 			flashCount = 0;
 		}
 		flashCount++;

@@ -73,6 +73,70 @@ void MX_ADC_Init(void)
 
   /** Configure for the selected ADC regular channel to be converted.
   */
+  sConfig.Channel = ADC_CHANNEL_1;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_4;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_5;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_7;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
   sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
@@ -97,13 +161,28 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC1_CLK_ENABLE();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ADC GPIO Configuration
     PA0     ------> ADC_IN0
+    PA1     ------> ADC_IN1
+    PA2     ------> ADC_IN2
+    PA3     ------> ADC_IN3
+    PA4     ------> ADC_IN4
+    PA5     ------> ADC_IN5
+    PA6     ------> ADC_IN6
+    PA7     ------> ADC_IN7
+    PB0     ------> ADC_IN8
     */
-    GPIO_InitStruct.Pin = NTC_STM_MEAS_9_Pin;
+    GPIO_InitStruct.Pin = NTC_STM_MEAS_9_Pin|NTC_STM_MEAS_8_Pin|NTC_STM_MEAS_7_Pin|NTC_STM_MEAS_6_Pin
+                          |NTC_STM_MEAS_5_Pin|NTC_STM_MEAS_4_Pin|NTC_STM_MEAS_3_Pin|NTC_STM_MEAS_2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(NTC_STM_MEAS_9_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = NTC_STM_MEAS_1_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(NTC_STM_MEAS_1_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
@@ -124,8 +203,19 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
     /**ADC GPIO Configuration
     PA0     ------> ADC_IN0
+    PA1     ------> ADC_IN1
+    PA2     ------> ADC_IN2
+    PA3     ------> ADC_IN3
+    PA4     ------> ADC_IN4
+    PA5     ------> ADC_IN5
+    PA6     ------> ADC_IN6
+    PA7     ------> ADC_IN7
+    PB0     ------> ADC_IN8
     */
-    HAL_GPIO_DeInit(NTC_STM_MEAS_9_GPIO_Port, NTC_STM_MEAS_9_Pin);
+    HAL_GPIO_DeInit(GPIOA, NTC_STM_MEAS_9_Pin|NTC_STM_MEAS_8_Pin|NTC_STM_MEAS_7_Pin|NTC_STM_MEAS_6_Pin
+                          |NTC_STM_MEAS_5_Pin|NTC_STM_MEAS_4_Pin|NTC_STM_MEAS_3_Pin|NTC_STM_MEAS_2_Pin);
+
+    HAL_GPIO_DeInit(NTC_STM_MEAS_1_GPIO_Port, NTC_STM_MEAS_1_Pin);
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 

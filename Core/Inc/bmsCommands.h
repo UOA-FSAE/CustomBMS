@@ -112,12 +112,7 @@ void BMS_SetUnderVoltageLimit(uint16_t voltageInMv);
  *
  * @note `BMS_SetCellDischarge(uint8_t cell, bool enable)`: An external function that controls the discharge state of a specific cell.
  */
-void BMS_PassiveBalanceCells(float period);
-
-/**
- *
- */
-void BMS_ActiveBalanceCells();
+void BMS_PassiveBalanceCells();
 
 /*
  *
