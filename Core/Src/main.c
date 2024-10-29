@@ -43,24 +43,20 @@
 BmsStatus status = { .cellVoltages = { 0 }, 		// Stores all cell voltages
 		.minVoltage = 50000,		// Set higher than maximum possible voltage
 		.maxVoltage = 0,			// Set lower than minimum possible voltage
-		.minEnergy = 7500,
 		.packCurrent = 0,					// Initialise at 0mA
 		.packCurrentCounter = 0,			// Initialise at 0As
 		.cellTemperatures = { 1, 2, 3, 4, 5, 6, 7, 8 },	// Stores all cell temperatures
 		.maxTemp = 0,						// Initialise at 0
 		.maxTemp = 5000,						// Initialise at 500 degrees
 		.stmTemperature = 0,				// Internal STM thermistor
-		.activeBalancingActive = 0,	// Active balancing is not active on startup
 		.passiveBalancingActive = 0,// Passive balancing is not active on startup
 		.cellPassiveBalancingFlags = 0,		// No cells are balancing on startup
-		.cellActiveBalancingFlags = 0,		// No cells are balancing on startup
 		.numCellsBalancing = 0,			// Number of cells currently balancing
 		.cellOverVoltage = 0,				// Reset Over Voltage Error
 		.cellUnderVoltage = 0,				// Reset Under Voltage Error
 		.cellShutdownTemperature = 0,		// Reset Shutdown Temperature Error
 		.cellWarningTemperature = 0,		// Reset Warning Temperature Error
 		.pbIcWatchdogTimeout = 0,		// Reset PB IC Watchdog Timeout Error
-		.abIcWatchdogTimeout = 0		// Reset AB IC Watchdog Timeout Error
 		};
 
 // Initialize an instance of BmsConfig
@@ -73,11 +69,8 @@ BmsConfig config = { .numberOfCells = 18,// BMS is designed to have 18 cells on 
 		.overVoltageMV = 42000,			// All LiPo are 4.2V
 		.shutdownTemperature = 60,	// Rules dictate max accumulator temp is 60C
 		.warningTemperature = 50,			// Chosen semi-arbitrarily
-		.activeBalanceEnabled = 0,			// Disable by default
 		.passiveBalanceEnabled = 0,			// Disable by default
 		.passiveBalanceThreshold = 20,		// 2mV
-		.activeBalanceThreshold = 20,		// 2mV
-		.activeBalanceCurrent = 0	 		// 0mA Default
 		};
 
 /* USER CODE END PD */
@@ -155,16 +148,12 @@ int main(void)
 	HAL_GPIO_WritePin(CAN_ERROR_GPIO_Port, CAN_ERROR_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(CAN_OK_GPIO_Port, CAN_OK_Pin, GPIO_PIN_RESET);
 
-	//  BMS_InitConfigRegisters();
-//	ActiveBalance_Init();
+  BMS_InitConfigRegisters();
 	CAN_SendBmsConfiguration();
 	CAN_SendBalanceConfiguration();
 
 	// Load previous energy values
-	FLASH_CheckForEnergyStorage();
-
-	// Disable the Active Balance
-	HAL_GPIO_WritePin(AB_DRIVE_EN_GPIO_Port, AB_DRIVE_EN_Pin, GPIO_PIN_RESET);
+	FLASH_CheckForSegmentCapacity();
 
 	// Begin Timers
 	HAL_TIM_Base_Start_IT(&htim1);  // Get BMS Voltages

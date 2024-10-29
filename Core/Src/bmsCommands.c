@@ -234,7 +234,6 @@ void BMS_GetVoltagesAll(uint16_t *voltages) {
 
 	// Find the minimum and maximum cell voltages
 	status.minVoltage = 0xFFFF;
-	status.minEnergy = 0x7FFF;
 	status.maxVoltage = 0;
 	for (int i = 0; i < config.numberOfPopulatedCells; i++) {
 		uint8_t cell = config.populatedCells[i]; // TODO: Remove populated cells
@@ -245,34 +244,16 @@ void BMS_GetVoltagesAll(uint16_t *voltages) {
 		if (voltage > status.maxVoltage) {
 			status.maxVoltage = voltage;
 		}
-		if (status.cellRemainingEnergy[cell] < status.minEnergy) {
-			status.minEnergy = status.cellRemainingEnergy[cell];
-		}
-
-		if (status.cellRemainingEnergy[cell] > status.maxEnergy) {
-			status.maxEnergy = status.cellRemainingEnergy[cell];
-		}
-
-		if (voltage <= MIN_BALANCING_CELL_VOLTAGE) {
-//			status.cellRemainingEnergy[cell] = 0;
-			int16_t diffToZero = -status.cellRemainingEnergy[cell];
-			for (int j = 0; j < config.numberOfPopulatedCells; j++) {
-				status.cellRemainingEnergy[config.populatedCells[j]] += diffToZero;
-			}
-		}
 	}
 
 
 	// Start adc conversion for all cells at the standard 7kHz
 	BMS_SendCommand(START_ADC_CONVERSION_7KHZ, true);
-
 	// As this function is called every 10ms and it takes <5ms to convert this will be ready by next call
-
 }
 
 /* Passive  Balancing */
-void BMS_PassiveBalanceCells(float period) {
-    float elapsedTimeHours = period / 3600000.0f;  // Convert ms to hours
+void BMS_PassiveBalanceCells() {
 
     for (int i = 0; i < config.numberOfPopulatedCells; i++) {
         uint8_t cell = config.populatedCells[i];
@@ -285,134 +266,13 @@ void BMS_PassiveBalanceCells(float period) {
         }
 
         if (status.cellVoltages[cell] > status.minVoltage + config.passiveBalanceThreshold) {
-            // Calculate energy discharged through the balancing resistor
-            float current_mA = ((float)voltage/10) / DISCHARGE_RESISTANCE;  // Current in mA
-
-            // If this is the first time in a while don't have a massive
-            float energyChangeMah = current_mA * elapsedTimeHours;  // Energy change in mAh
-
-
             BMS_SetCellDischarge(cell, true);
-
-            status.cellEnergyChangeMah[cell] -= energyChangeMah; // removed added energy
-
-            // Update cell's remaining energy if the accumulated change is 1 mAh or more
-            int intEnergyChange = (int)status.cellEnergyChangeMah[cell];
-            if (intEnergyChange != 0) {
-                status.cellRemainingEnergy[cell] += intEnergyChange;
-                status.cellEnergyChangeMah[cell] -= intEnergyChange;
-            }
         } else {
-
             BMS_SetCellDischarge(cell, false);
         }
     }
 
     HAL_GPIO_WritePin(STM_AUX_2_GPIO_Port, STM_AUX_2_Pin, GPIO_PIN_RESET);
-}
-
-
-/* Active Balancing*/
-uint8_t cellToCharge = 0;
-void BMS_ActiveBalanceCells() {
-    float elapsedTimeHours = 8*245.0f / 3600000.0f;  // Convert ms to hours every 8th 245 ms
-    uint16_t minEnergy = 0xFFFF;
-
-    // Find the cell with the minimum voltage
-    for (int i = 0; i < config.numberOfPopulatedCells; i++) {
-        uint8_t cell = config.populatedCells[i];
-        if (status.cellRemainingEnergy[cell] < minEnergy) {
-            minEnergy = status.cellRemainingEnergy[cell];
-            cellToCharge = cell;
-        }
-    }
-
-    if (status.minVoltage < 34000 || status.maxVoltage > 39800) {
-        BMS_SetCellCharge(0, false);
-        if (status.minVoltage > 38000) {
-     		HAL_GPIO_WritePin(AB_DRIVE_EN_GPIO_Port, AB_DRIVE_EN_Pin, GPIO_PIN_SET);
-        }
-        return;
-
-		if (status.minVoltage < 34000) {
-			HAL_GPIO_WritePin(AB_DRIVE_EN_GPIO_Port, AB_DRIVE_EN_Pin, GPIO_PIN_RESET);
-		}
-
-	//    cellToCharge = 4; // Uncomment to force a cell
-		// Charge only the cell with the minimum voltage
-		for (int i = 0; i < config.numberOfPopulatedCells; i++) {
-			uint8_t cell = config.populatedCells[i];
-			if (cell == cellToCharge) {
-				// If cell energy is above threshold
-				if (status.cellRemainingEnergy[cell] < status.maxEnergy - config.activeBalanceThreshold) {
-					// Calculate energy charged
-					float current_mA = 1004;  // Assuming a constant charge current
-					float energyChangeMah = current_mA * elapsedTimeHours;  // Energy change in mAh
-					BMS_SetCellCharge(cell, true);
-					status.cellEnergyChangeMah[cell] += energyChangeMah;
-					// Update cell's remaining energy if the accumulated change is 1 mAh or more
-					int intEnergyChange = (int)status.cellEnergyChangeMah[cell];
-					if (intEnergyChange != 0) {
-						status.cellRemainingEnergy[cell] += intEnergyChange;
-						status.cellEnergyChangeMah[cell] -= intEnergyChange; // remove from cell change
-					}
-				} else { // don't charge if voltage is above the maximum
-					BMS_SetCellCharge(cell, false);
-				}
-			} else {
-				// Ensure other cells are not being charged
-				BMS_SetCellCharge(cell, false);
-			}
-		}
-    }
-}
-
-uint8_t chargeCell = 0;
-void BMS_SetCellCharge(uint8_t cell, bool enable) {
-	chargeCell = cell;
-	status.activeBalancingActive = enable;
-	if (cell == 0) { // Disable all cells (Active low)
-		HAL_GPIO_WritePin(AB_C1_EN_GPIO_Port, AB_C1_EN_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(AB_C2_EN_GPIO_Port, AB_C2_EN_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(AB_C3_EN_GPIO_Port, AB_C3_EN_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(AB_C4_EN_GPIO_Port, AB_C4_EN_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(AB_C5_EN_GPIO_Port, AB_C5_EN_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(AB_C6_EN_GPIO_Port, AB_C6_EN_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(AB_C7_EN_GPIO_Port, AB_C7_EN_Pin, GPIO_PIN_SET);
- 		status.cellActiveBalancingFlags = 0; // Nothing is going to be balancing
-	} else {
-		if (enable) {
-			status.cellActiveBalancingFlags = (1 << cell);
-		} else {
-		}
-		switch (cell) {
-		case 2:
-			HAL_GPIO_WritePin(AB_C1_EN_GPIO_Port, AB_C1_EN_Pin, !enable);
-			break;
-		case 4:
-			HAL_GPIO_WritePin(AB_C2_EN_GPIO_Port, AB_C2_EN_Pin, !enable);
-			break;
-		case 6:
-			HAL_GPIO_WritePin(AB_C3_EN_GPIO_Port, AB_C3_EN_Pin, !enable);
-			break;
-		case 8:
-			HAL_GPIO_WritePin(AB_C4_EN_GPIO_Port, AB_C4_EN_Pin, !enable);
-			break;
-		case 10:
-			HAL_GPIO_WritePin(AB_C5_EN_GPIO_Port, AB_C5_EN_Pin, !enable);
-			break;
-		case 12:
-			HAL_GPIO_WritePin(AB_C6_EN_GPIO_Port, AB_C6_EN_Pin, !enable);
-			break;
-		case 14:
-			HAL_GPIO_WritePin(AB_C7_EN_GPIO_Port, AB_C7_EN_Pin, !enable);
-			break;
-		default:
-			BMS_SetCellCharge(0, false); // disable them all
-			status.cellActiveBalancingFlags = 0; // Nothing is going to be balancing
-			break;
-		}
-	}
 }
 
 void BMS_SetCellDischargeMuteAll(bool mute) {

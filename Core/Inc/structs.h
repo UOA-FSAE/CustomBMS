@@ -22,13 +22,8 @@ typedef struct {
     uint16_t minVoltage;             /** Minimum cell voltage in millivolts. */
     uint16_t maxVoltage;             /** Maximum cell voltage in millivolts. */
 
-    // SoC & SoH Info
-    float packCoulombCount;     /** Pack coulomb counter. Calculated on the STM*/
-    int16_t cellRemainingEnergy[20];  /** Array of cell state of charge. */
-    float cellEnergyChangeMah[18]; /** Array of cell coulomb counters. */
-    uint8_t remainingEnergiesRequested; /** The number of remaining enrgies remaining in a request. Used to ensure segment is asking to be updated */
-    int16_t minEnergy;             /** Minimum cell energy in mAh. */
-    int16_t maxEnergy;             /** Minimum cell energy in mAh. */
+    // SoC for segment
+    float segmentCoulombCount;     /** Pack coulomb counter. Calculated on the STM*/
 
     // Current Info
     int32_t packCurrent;            /** Pack current in milliamps. */
@@ -41,10 +36,8 @@ typedef struct {
     uint16_t stmTemperature;         /** STM temperature in 0.1 degrees Celsius. */
 
     // Balancing Info
-    uint8_t activeBalancingActive : 1; /** Flag indicating if active balancing is currently active. */
     uint8_t passiveBalancingActive : 1; /** Flag indicating if passive balancing is currently active. */
     uint32_t cellPassiveBalancingFlags;    /** Bitfield indicating which cells are passively balancing. */
-    uint32_t cellActiveBalancingFlags;    /** Bitfield indicating which cells are actively balancing. */
     uint8_t numCellsBalancing : 6; /** Number of cells currently balancing. */
 
     // Error Flags
@@ -53,8 +46,6 @@ typedef struct {
     uint8_t cellShutdownTemperature : 1; /** Flag indicating a cell shutdown temperature condition. */
     uint8_t cellWarningTemperature : 1; /** Flag indicating a cell warning temperature condition. */
     uint8_t pbIcWatchdogTimeout : 1; /** Flag indicating a passive balancing IC watchdog timeout. */
-    uint8_t abIcWatchdogTimeout : 1; /** Flag indicating an active balancing IC watchdog timeout. */
-    uint8_t abIcFault : 4;          /** The faut code from the active balancing IC. */
 } BmsStatus;
 
 /**
@@ -78,12 +69,9 @@ typedef struct {
     uint8_t warningTemperature;      /** Warning temperature threshold in degrees Celsius. */
 
     // Balancing Configuration
-    uint8_t activeBalanceEnabled : 1; /** Flag indicating if active balancing is enabled. */
     uint8_t passiveBalanceEnabled : 1; /** Flag indicating if passive balancing is enabled. */
     uint8_t passiveBalanceThreshold; /** Passive balance threshold in millivolts. */
-    uint8_t activeBalanceThreshold; /** Active balance threshold in millivolts. */
     uint8_t passiveBalanceDutyCycle; /** Passive balance duty cycle percentage. */
-    uint8_t activeBalanceCurrent;    /** Active balance current in milliamps. */
 } BmsConfig;
 
 

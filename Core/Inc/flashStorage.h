@@ -4,47 +4,43 @@
 #include <stdint.h>
 
 /**
- * @brief Check for stored energy data in flash and request new data from the Motec if necessary
+ * @brief Check for stored segment capacity in flash and request new data if necessary
  *
- * This function reads energy data from a predefined flash address. If all
- * values are zero (indicating loss of memory or first boot), it requests
- * new energy data via CAN and waits until all data is received.
- *
- * @note The array should be at least REMAINING_ENERGY_COUNT elements long
+ * This function reads the segment capacity from a predefined flash address. If the
+ * value is invalid (zero or negative, indicating loss of memory or first boot), it
+ * requests new capacity data via CAN and waits until the data is received.
  */
-void FLASH_CheckForEnergyStorage();
+void FLASH_CheckForSegmentCapacity(void);
 
 /**
- * @brief Save remaining energy data to flash
+ * @brief Save segment capacity to flash
  *
- * This function writes the energy data from the BmsStatus to a predefined flash address.
- *
- * @note The array should contain REMAINING_ENERGY_COUNT elements
+ * This function writes the segment capacity from the BmsStatus to a predefined
+ * flash address.
  */
-void FLASH_SaveRemainingEnergies();
+void FLASH_SaveSegmentCapacity(void);
 
 /**
- * @brief Write int16_t data to flash memory
+ * @brief Write float data to flash memory
  *
- * This function writes an array of int16_t values to the specified flash address.
+ * This function writes a float value to the specified flash address.
  * It handles flash unlocking, erasing, and locking operations.
+ * The float is stored as a 32-bit word in flash memory.
  *
  * @param address Starting address in flash memory to write to
- * @param data Pointer to the int16_t array to be written
- * @param size Number of int16_t elements to write
+ * @param data Pointer to the float value to be written
  */
-void FLASH_WriteToFlash(uint32_t address, const int16_t* data, uint16_t size);
+void FLASH_WriteToFlash(uint32_t address, const float* data);
 
 /**
- * @brief Read int16_t data from flash memory
+ * @brief Read float data from flash memory
  *
- * This function reads an array of int16_t values from the specified flash address.
+ * This function reads a float value from the specified flash address.
+ * The value is read as a 32-bit word and converted back to float.
  *
  * @param address Starting address in flash memory to read from
- * @param data Pointer to the int16_t array where read data will be stored
- * @param size Number of int16_t elements to read
+ * @param data Pointer to float where the read data will be stored
  */
-void FLASH_ReadFromFlash(uint32_t address, int16_t* data, uint16_t size);
-
+void FLASH_ReadFromFlash(uint32_t address, float* data);
 
 #endif /* INC_FLASHSTORAGE_H_ */
