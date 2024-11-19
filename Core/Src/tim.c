@@ -328,6 +328,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 	if (htim->Instance == TIM14) // TIM14 = 1s intervals
 	{
+	  // Read Temperatures
+	  TEMP_ReadAllThermistors();
+	  TEMP_ReadSTMTemperature();
 
 		//Update flash every minute;
 		if (flashCount >= 60) {

@@ -152,13 +152,13 @@ void BMS_SetConfigurationRegisters(uint8_t* configA, uint8_t* configB);
 void BMS_GetConfigurationRegisters(uint8_t* configA, uint8_t* configB);
 
 /**
- * @brief Gets the cells with over-voltage.
+ * @brief Gets the cells with over-voltage flag set on the BMS chip.
  * @return A bitmask indicating the over-voltage status of each cell.
  */
 uint32_t BMS_GetOverVoltageCells();
 
 /**
- * @brief Gets the cells with under-voltage.
+ * @brief Gets the cells with under-voltage flag set on the BMS chip.
  * @return A bitmask indicating the under-voltage status of each cell.
  */
 uint32_t BMS_GetUnderVoltageCells();

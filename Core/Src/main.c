@@ -62,7 +62,7 @@ BmsStatus status = { .cellVoltages = { 0 }, 		// Stores all cell voltages
 // Initialize an instance of BmsConfig
 BmsConfig config = { .numberOfCells = 18,// BMS is designed to have 18 cells on it
 		.numberOfThermistors = 8,// There are 8 thermistors wired to the STM ADCs
-		.overVoltageMV = 42000,// HV-LiPo (M025) are 4.35V, LiCoO2 (<2024) are 4.2V
+		.overVoltageMV = 42000,	// HV-LiPo (M025) are 4.35V, LiCoO2 (<2024) are 4.2V
 		.underVoltageMV = 32000,			// All LiPo are 3.2V
 		.overVoltageMV = 42000,			// All LiPo are 4.2V
 		.shutdownTemperature = 60,	// Rules dictate max accumulator temp is 60C
@@ -146,7 +146,7 @@ int main(void)
 	HAL_GPIO_WritePin(CAN_ERROR_GPIO_Port, CAN_ERROR_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(CAN_OK_GPIO_Port, CAN_OK_Pin, GPIO_PIN_RESET);
 
-  BMS_InitConfigRegisters();
+	BMS_InitConfigRegisters();
 	CAN_SendBmsConfiguration();
 	CAN_SendBalanceConfiguration();
 
@@ -163,12 +163,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 	while (1) {
-		// Check if 1 second has passed, if so save energies to flash
-//		uint32_t currentTime = HAL_GetTick();
-//		if (currentTime - lastSaveTime >= 1000) {
-//			writeToFlash(cellRemainingEnergy, 20);
-//			lastSaveTime = currentTime;
-//		}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

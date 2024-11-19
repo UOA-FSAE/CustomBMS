@@ -30,7 +30,7 @@ typedef struct {
     int32_t packCurrentCounter;     /** Pack current counter. From ISA Sensor */
 
     // Temperatures
-    uint16_t cellTemperatures[8];    /** Array of cell temperatures in 0.1 degrees Celsius. */
+    uint16_t cellTemperatures[9];    /** Array of cell temperatures in 0.1 degrees Celsius. */
     uint16_t minTemp;               /** Minimum cell temperature in 0.1 degrees Celsius. */
     uint16_t maxTemp;                /** Maximum cell temperature in 0.1 degrees Celsius. */
     uint16_t stmTemperature;         /** STM temperature in 0.1 degrees Celsius. */
