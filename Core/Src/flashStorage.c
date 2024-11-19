@@ -24,7 +24,7 @@ void FLASH_CheckForSegmentCapacity() {
     while (status.segmentCoulombCount == -12.34f) {
         // Hang here until capacity is received
         HAL_GPIO_TogglePin(CAN_ERROR_GPIO_Port, CAN_ERROR_Pin);
-        HAL_Delay(100); // Delay To ensure Motec & rest of car ready
+        HAL_Delay(100);
     }
     HAL_GPIO_WritePin(CAN_ERROR_GPIO_Port, CAN_ERROR_Pin, GPIO_PIN_RESET);
 
