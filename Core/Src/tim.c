@@ -304,6 +304,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM1)  // TIM 1 = 10ms intervals
 	{
     BMS_GetVoltagesAll(status.cellVoltages);
+    // Temp fix to set the bits
+    status.cellOverVoltage = status.maxVoltage > ABSMAX_CELL_VOLTAGE;
+    status.cellUnderVoltage = status.minVoltage < ABSMIN_CELL_VOLTAGE;
+
 		CAN_SendStatus();
 		CAN_SendCellVoltages();
 	}
@@ -330,7 +334,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	{
 	  // Read Temperatures
 	  TEMP_ReadAllThermistors();
-	  TEMP_ReadSTMTemperature();
+//	  TEMP_ReadSTMTemperature();
 
 		//Update flash every minute;
 		if (flashCount >= 60) {

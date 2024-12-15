@@ -23,6 +23,16 @@
 #define MIN_BALANCING_CELL_VOLTAGE				32000
 #define MAX_BALANCING_CELL_VOLTAGE				42000
 
+// Constants for NTC calculations
+// TODO: get the thermistors from the datasheet
+#define NTC_REFERENCE_RESISTANCE 10000.0f
+#define NTC_BETA_VALUE 3950.0f
+#define NTC_NOMINAL_TEMP 298.15f
+#define ADC_MAX_VALUE 4095
+#define VOLTAGE_REFERENCE 3.3f
+
+#define TEMP_TABLE_SIZE 80
+
 /* CAN FRAME DEFINITIONS */
 #define CAN_SEGMENT_NUMBER 0 	/// used to modify the CAN Frames to be identifiable by segment (0 indexed)
 #define CAN_ID_STATUS_UPDATE_A 					0x200 + (CAN_SEGMENT_NUMBER << 4) // 8 byte frame giving status update
